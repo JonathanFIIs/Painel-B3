@@ -230,19 +230,13 @@ def get_noticias(
 ):
     try:
         if agencia == "all" or agencia == "monitored":
-            res18 = fetch_agency_data("18", periodo, palavra or "", dataInicial, dataFinal)
-            try:
-                res17 = fetch_agency_data("17", periodo, palavra or "", dataInicial, dataFinal)
-            except Exception:
-                res17 = []
-            combined = res18 + res17
-            combined.sort(key=lambda x: x.get("dateTime") or "", reverse=True)
-            results = combined
+            results = fetch_agency_data("18", periodo, palavra or "", dataInicial, dataFinal)
         elif agencia == "fii_only":
             raw18 = fetch_agency_data("18", periodo, palavra or "", dataInicial, dataFinal)
             results = [item for item in raw18 if item.get("isFii")]
         elif agencia == "acoes":
-            results = fetch_agency_data("17", periodo, palavra or "", dataInicial, dataFinal)
+            raw18 = fetch_agency_data("18", periodo, palavra or "", dataInicial, dataFinal)
+            results = [item for item in raw18 if not item.get("isFii")]
         else:
             code = "17" if agencia == "17" else "18"
             results = fetch_agency_data(code, periodo, palavra or "", dataInicial, dataFinal)
