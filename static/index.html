@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>B3 Plantão - Monitor de Comunicados & Fatos Relevantes</title>
+    <meta name="description" content="Monitor institucional de comunicados, fatos relevantes e visualizador integrado de documentos da B3">
+    <!-- Favicon B3 Plantão -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=3.0">
+    <link rel="alternate icon" href="/favicon.ico?v=3.0" type="image/x-icon">
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css?v=2.5">
+</head>
+<body>
+    <div class="dashboard-wrapper" id="dashboardWrapper">
+        <!-- Header Principal Institucional B3 -->
+        <header class="main-header">
+            <div class="header-brand">
+                <div class="b3-logo-badge">
+                    <span class="b3-logo-symbol">[B]³</span>
+                </div>
+                <div class="brand-titles">
+                    <div class="brand-heading-row">
+                        <h1>B3 Plantão</h1>
+                        <span class="live-indicator"><span class="pulse-dot"></span> Ao Vivo</span>
+                    </div>
+                    <span id="lastUpdatedText" class="last-update-subtitle">Última atualização: --:--:--</span>
+                </div>
+            </div>
+
+            <!-- Controles do Header -->
+            <div class="header-controls">
+                <!-- Seletor de Período Customizado B3 com Calendário -->
+                <div class="period-picker-container" id="periodPickerContainer">
+                    <button type="button" class="btn-period-trigger" id="btnPeriodTrigger" aria-expanded="false" aria-haspopup="true">
+                        <span class="period-trigger-icon">📅</span>
+                        <span class="period-trigger-label" id="periodTriggerLabel">Este mês</span>
+                        <span class="period-trigger-chevron" id="periodTriggerChevron">▲</span>
+                    </button>
+
+                    <div class="period-dropdown-card" id="periodDropdownCard" style="display: none;">
+                        <div class="period-dropdown-header">
+                            <span class="period-dropdown-title">SELECIONE O PERÍODO</span>
+                            <button type="button" class="btn-period-clear" id="btnClearPeriod">Limpar</button>
+                        </div>
+
+                        <div class="period-presets-list">
+                            <button type="button" class="preset-option" data-period="hoje">Hoje</button>
+                            <button type="button" class="preset-option" data-period="semana">Esta semana</button>
+                            <button type="button" class="preset-option active" data-period="mes">Este mês</button>
+                            <button type="button" class="preset-option" data-period="todos">Todos</button>
+                        </div>
+
+                        <div class="period-dropdown-divider"></div>
+
+                        <div class="period-custom-section">
+                            <div class="period-custom-title">INTERVALO PERSONALIZADO</div>
+                            <div class="period-helper-badge" id="periodHelperBadge">Clique 1: Selecione a Data Inicial</div>
+
+                            <div class="b3-calendar" id="b3Calendar">
+                                <div class="cal-nav-header">
+                                    <button type="button" class="cal-nav-btn" id="calPrevMonth" title="Mês anterior">‹</button>
+                                    <span class="cal-month-title" id="calMonthTitle">Agosto 2026</span>
+                                    <button type="button" class="cal-nav-btn" id="calNextMonth" title="Próximo mês">›</button>
+                                </div>
+                                <div class="cal-weekdays">
+                                    <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                                </div>
+                                <div class="cal-days-grid" id="calDaysGrid">
+                                    <!-- Dias gerados dinamicamente via app.js -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classe de Ativos Padronizada (Custom Dropdown) -->
+                <div class="control-group control-group-asset">
+                    <div class="custom-dropdown-container" id="assetDropdownContainer">
+                        <button type="button" class="btn-custom-trigger" id="btnAssetTrigger" aria-expanded="false" aria-haspopup="true">
+                            <span class="trigger-icon" id="assetTriggerIcon">🏢</span>
+                            <span class="trigger-label" id="assetTriggerLabel">FIIs (Imobiliários)</span>
+                            <span class="trigger-chevron" id="assetTriggerChevron">▼</span>
+                        </button>
+                        <div class="custom-dropdown-card asset-dropdown-card" id="assetDropdownCard" style="display: none;">
+                            <div class="dropdown-options-list">
+                                <button type="button" class="custom-option active" data-value="fii_only">
+                                    <span class="opt-icon">🏢</span>
+                                    <div class="opt-info">
+                                        <span class="opt-title">FIIs (Fundos Imobiliários)</span>
+                                        <span class="opt-desc">Comunicados e fatos de FIIs & Fiagros</span>
+                                    </div>
+                                    <span class="opt-check">✓</span>
+                                </button>
+                                <button type="button" class="custom-option" data-value="acoes">
+                                    <span class="opt-icon">📈</span>
+                                    <div class="opt-info">
+                                        <span class="opt-title">Ações & Empresas</span>
+                                        <span class="opt-desc">Mercado de ações, BDRs e pregão B3</span>
+                                    </div>
+                                    <span class="opt-check">✓</span>
+                                </button>
+                                <button type="button" class="custom-option" data-value="all">
+                                    <span class="opt-icon">🌐</span>
+                                    <div class="opt-info">
+                                        <span class="opt-title">Todos os Tipos</span>
+                                        <span class="opt-desc">FIIs, Ações, BDRs, Renda Fixa e Índices</span>
+                                    </div>
+                                    <span class="opt-check">✓</span>
+                                </button>
+                                <button type="button" class="custom-option" data-value="monitored">
+                                    <span class="opt-icon">⭐</span>
+                                    <div class="opt-info">
+                                        <span class="opt-title">Ativos Monitorados</span>
+                                        <span class="opt-desc">Apenas tickers cadastrados na Carteira</span>
+                                    </div>
+                                    <span class="opt-check">✓</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-actions-group">
+                    <!-- Botão Gerenciar Carteira / Monitorados -->
+                    <button class="btn-b3 btn-secondary-b3" id="btnOpenWatchlist" title="Cadastrar e gerenciar ativos monitorados">
+                        <span class="btn-icon">⚙️</span>
+                        <span class="btn-text-hide-mobile">Carteira</span>
+                        <span class="badge-count" id="monitoredCountBadge">0</span>
+                    </button>
+
+                    <!-- Botão de Atualização Manual -->
+                    <button class="btn-b3 btn-primary-b3" id="btnRefresh" title="Atualizar agora (Tecla R)">
+                        <span class="refresh-icon" id="refreshIcon">🔄</span>
+                        <span id="btnLabel" class="btn-text-hide-mobile">Atualizar</span>
+                        <kbd class="shortcut-badge">R</kbd>
+                    </button>
+
+                    <!-- Ação de Som -->
+                    <button class="icon-btn" id="btnToggleSound" title="Ativar/Desativar Som de Notificação" aria-label="Som">
+                        <span id="soundIcon">🔊</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barra de Busca, Categoria e Estatísticas -->
+        <section class="search-filter-bar">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="inputSearch" placeholder="Buscar ticker (HGLG11, PETR4), termo ou assunto..." autocomplete="off">
+                <button class="clear-search-btn" id="btnClearSearch" title="Limpar busca" style="display: none;">&times;</button>
+            </div>
+
+            <div class="category-dropdown-wrapper">
+                <label class="dropdown-label">Categoria:</label>
+                <div class="custom-dropdown-container" id="categoryDropdownContainer">
+                    <button type="button" class="btn-custom-trigger btn-category-trigger" id="btnCategoryTrigger" aria-expanded="false" aria-haspopup="true">
+                        <span class="trigger-icon" id="categoryTriggerIcon">📁</span>
+                        <span class="trigger-label" id="categoryTriggerLabel">Todas as Categorias</span>
+                        <span class="trigger-chevron" id="categoryTriggerChevron">▼</span>
+                    </button>
+
+                    <div class="custom-dropdown-card category-dropdown-card" id="categoryDropdownCard" style="display: none;">
+                        <div class="dropdown-card-header">
+                            <span class="dropdown-card-title">FILTRAR POR CATEGORIA</span>
+                            <button type="button" class="btn-dropdown-reset" id="btnResetCategory">Todas</button>
+                        </div>
+                        
+                        <div class="dropdown-options-scroll">
+                            <div class="dropdown-group-title">PRINCIPAIS</div>
+                            <button type="button" class="custom-option active" data-value="ALL">
+                                <span class="opt-icon">🌐</span>
+                                <span class="opt-label">Todas as Categorias</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Comunicado ao Mercado">
+                                <span class="opt-icon">📄</span>
+                                <span class="opt-label">Comunicados ao Mercado</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Fato Relevante">
+                                <span class="opt-icon">🚨</span>
+                                <span class="opt-label">Fatos Relevantes</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Rendimentos">
+                                <span class="opt-icon">💰</span>
+                                <span class="opt-label">Rendimentos & Proventos</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Avisos">
+                                <span class="opt-icon">📢</span>
+                                <span class="opt-label">Avisos Cotistas / Acionistas</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+
+                            <div class="dropdown-group-title">RELATÓRIOS & DEMONSTRAÇÕES</div>
+                            <button type="button" class="custom-option" data-value="Relatórios Gerenciais">
+                                <span class="opt-icon">📊</span>
+                                <span class="opt-label">Relatórios Gerenciais</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Informes Periódicos">
+                                <span class="opt-icon">📑</span>
+                                <span class="opt-label">Informes Periódicos</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Demonstrações Financeiras">
+                                <span class="opt-icon">📑</span>
+                                <span class="opt-label">Demonstrações Financeiras (DFs)</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Atas & Governança">
+                                <span class="opt-icon">🏛️</span>
+                                <span class="opt-label">Atas & Governança</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Assembleias">
+                                <span class="opt-icon">📋</span>
+                                <span class="opt-label">Assembleias (AGE / AGO)</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Ofertas & Emissões">
+                                <span class="opt-icon">🎯</span>
+                                <span class="opt-label">Ofertas & Emissões</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+
+                            <div class="dropdown-group-title">MERCADO & STATUS</div>
+                            <button type="button" class="custom-option" data-value="Leilões & Pregão">
+                                <span class="opt-icon">⚡</span>
+                                <span class="opt-label">Leilões & Negociação</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Dados Diários">
+                                <span class="opt-icon">📈</span>
+                                <span class="opt-label">Dados Diários</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="Outros">
+                                <span class="opt-icon">📌</span>
+                                <span class="opt-label">Outros Documentos</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="FAVORITES">
+                                <span class="opt-icon">⭐</span>
+                                <span class="opt-label">Apenas Favoritos</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                            <button type="button" class="custom-option" data-value="UNREAD">
+                                <span class="opt-icon">📬</span>
+                                <span class="opt-label">Apenas Não Lidos</span>
+                                <span class="opt-check">✓</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-pills">
+                <div class="stat-pill" title="Total de comunicados carregados">
+                    <span class="stat-value" id="statTotal">0</span>
+                    <span class="stat-tag">Total</span>
+                </div>
+                <div class="stat-pill stat-new-pill" title="Novos comunicados recebidos nesta sessão">
+                    <span class="stat-value" id="statNew">0</span>
+                    <span class="stat-tag">Novos</span>
+                </div>
+                <div class="stat-pill" title="Ativos monitorados cadastrados">
+                    <span class="stat-value" id="statMonitored">0</span>
+                    <span class="stat-tag">Monitorados</span>
+                </div>
+                <div class="stat-pill" title="Comunicados favoritados">
+                    <span class="stat-value" id="statFavorites">0</span>
+                    <span class="stat-tag">Favoritos</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layout Principal: Split View / Master-Detail Responsivo -->
+        <main class="main-split-layout" id="mainSplitLayout">
+            <!-- Lista de Comunicados à Esquerda -->
+            <section class="news-list-panel" id="newsPanel">
+                <div class="list-panel-header">
+                    <div class="panel-header-title-group">
+                        <h2 class="panel-heading" id="panelHeading">Comunicados</h2>
+                        <span id="renderedCount" class="rendered-count-label"></span>
+                    </div>
+                    <div class="panel-header-actions">
+                        <button class="text-link-btn" id="btnMarkAllRead">Marcar lidos</button>
+                    </div>
+                </div>
+
+                <div class="news-scroll-container" id="newsList">
+                    <div class="loading-box">
+                        <div class="b3-spinner"></div>
+                        <p>Carregando comunicados da B3...</p>
+                    </div>
+                </div>
+
+                <div class="load-more-box" id="loadMoreContainer" style="display: none;">
+                    <button class="btn-b3 btn-secondary-b3 btn-block" id="btnLoadMore">Carregar Mais Comunicados</button>
+                </div>
+            </section>
+
+            <!-- Visualizador de Documentos à Direita -->
+            <section class="document-viewer-panel" id="viewerPanel">
+                <div class="viewer-header">
+                    <div class="viewer-header-left">
+                        <button class="btn-b3 btn-secondary-b3 btn-sm btn-mobile-back" id="btnMobileBack" title="Voltar para a lista de comunicados">
+                            <span>← Lista</span>
+                        </button>
+                        <div class="viewer-meta">
+                            <div class="viewer-meta-top">
+                                <span class="ticker-badge" id="viewerTicker">---</span>
+                                <span class="viewer-datetime" id="viewerTime">--/--/---- --:--:--</span>
+                            </div>
+                            <h3 class="viewer-headline" id="viewerTitle">Selecione um comunicado para ler o documento</h3>
+                        </div>
+                    </div>
+
+                    <div class="viewer-actions">
+                        <a href="#" target="_blank" class="btn-b3 btn-secondary-b3 btn-sm" id="btnViewerExternal" title="Abrir link oficial da B3">
+                            <span>🔗 Aba Oficial</span>
+                        </a>
+                        <a href="#" target="_blank" class="btn-b3 btn-accent-b3 btn-sm" id="btnViewerDownload" title="Baixar documento oficial">
+                            <span>📥 Baixar</span>
+                        </a>
+                        <button class="icon-btn icon-btn-sm btn-expand-desktop" id="btnViewerExpand" title="Modo Tela Cheia">⛶</button>
+                        <button class="icon-btn icon-btn-sm" id="btnViewerClose" title="Fechar visualizador">✕</button>
+                    </div>
+                </div>
+
+                <!-- Abas do Visualizador -->
+                <div class="viewer-tabs-bar">
+                    <button class="viewer-tab active" data-tab="doc">
+                        <span class="tab-icon">📄</span> Documento
+                    </button>
+                    <button class="viewer-tab" data-tab="raw">
+                        <span class="tab-icon">📝</span> Texto Original
+                    </button>
+                </div>
+
+                <!-- Conteúdo do Visualizador -->
+                <div class="viewer-content-area">
+                    <div class="tab-view active" id="tabDoc">
+                        <!-- Placeholder inicial -->
+                        <div class="viewer-empty-placeholder" id="viewerPlaceholder">
+                            <div class="placeholder-icon">📄</div>
+                            <h4>Nenhum comunicado selecionado</h4>
+                            <p>Toque ou clique em qualquer comunicado da lista para visualizá-lo aqui.</p>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div class="doc-loading-box" id="docLoading" style="display: none;">
+                            <div class="b3-spinner"></div>
+                            <p>Carregando documento oficial...</p>
+                        </div>
+
+                        <!-- Mensagem do Pregão / Comunicado de Texto -->
+                        <div class="text-notice-container" id="textNoticeView" style="display: none;">
+                            <div class="text-notice-card">
+                                <div class="text-notice-header">
+                                    <div class="notice-badge-group">
+                                        <span class="notice-type-tag">📢 Mensagem do Pregão / Comunicado</span>
+                                        <span class="notice-info-tag">Texto Oficial</span>
+                                    </div>
+                                    <button class="btn-b3 btn-secondary-b3 btn-sm" id="btnCopyNoticeText" title="Copiar texto do comunicado">
+                                        <span>📋 Copiar Texto</span>
+                                    </button>
+                                </div>
+                                <h3 class="text-notice-headline" id="textNoticeTitle">---</h3>
+                                <div class="text-notice-content" id="textNoticeContent">---</div>
+                                <div class="text-notice-footer">
+                                    <span>ℹ️ Esta publicação é uma mensagem operacional/pregão transmitida no Plantão da B3 (não requer anexo PDF).</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Iframe do Documento -->
+                        <iframe id="docFrame" class="document-iframe" src="about:blank" style="display: none;"></iframe>
+                    </div>
+
+                    <div class="tab-view" id="tabRaw">
+                        <div class="raw-text-view" id="rawContentBox">Nenhum comunicado selecionado.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal de Gerenciamento de Ativos Monitorados -->
+        <div class="modal-overlay" id="watchlistModal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-header-title">
+                        <span class="modal-header-icon">⚙️</span>
+                        <h3>Ativos Monitorados (Carteira)</h3>
+                    </div>
+                    <button class="icon-btn icon-btn-sm" id="btnCloseWatchlist" title="Fechar">✕</button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="modal-desc">Cadastre os tickers dos seus fundos e ações para filtrar instantaneamente na opção <strong>"⭐ Ativos Monitorados"</strong>.</p>
+
+                    <div class="input-add-group">
+                        <input type="text" id="inputNewTicker" placeholder="Digite o ticker (ex: HGLG11, PETR4)..." style="text-transform: uppercase;">
+                        <button class="btn-b3 btn-primary-b3" id="btnAddTicker">Adicionar</button>
+                    </div>
+
+                    <div class="preset-suggestions">
+                        <span class="preset-label">Sugestões:</span>
+                        <button class="chip-preset" data-ticker="HGLG11">+ HGLG11</button>
+                        <button class="chip-preset" data-ticker="MXRF11">+ MXRF11</button>
+                        <button class="chip-preset" data-ticker="KNIP11">+ KNIP11</button>
+                        <button class="chip-preset" data-ticker="PETR4">+ PETR4</button>
+                        <button class="chip-preset" data-ticker="VALE3">+ VALE3</button>
+                        <button class="chip-preset" data-ticker="B3SA3">+ B3SA3</button>
+                    </div>
+
+                    <div class="tickers-list-section">
+                        <h4>Ativos Cadastrados (<span id="monitoredListCount">0</span>):</h4>
+                        <div class="tickers-tags-grid" id="monitoredTagsGrid">
+                            <!-- Tags inseridas dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-b3 btn-primary-b3" id="btnDoneWatchlist">Concluir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container de Toasts de Notificação -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <script src="/static/app.js?v=2.5"></script>
+</body>
+</html>

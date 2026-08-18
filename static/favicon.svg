@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background squircle matching standard tab favicon proportions -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#001E62" />
+
+  <!-- Left Bracket "[" -->
+  <path d="M 15 17 H 9 V 47 H 15" fill="none" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="square" stroke-linejoin="miter" />
+
+  <!-- Letter "B" (Bold institutional typography) -->
+  <text x="18" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Arial Black', sans-serif" font-weight="900" font-size="28" fill="#FFFFFF">B</text>
+
+  <!-- Right Bracket "]" -->
+  <path d="M 37 17 H 43 V 47 H 37" fill="none" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="square" stroke-linejoin="miter" />
+
+  <!-- Exponent "3" (Outside top right of bracket) -->
+  <text x="46" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Arial Black', sans-serif" font-weight="900" font-size="15" fill="#FFFFFF">3</text>
+</svg>
