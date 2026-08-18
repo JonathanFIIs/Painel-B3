@@ -129,13 +129,27 @@ def parse_category(headline: str) -> str:
     return "Outros"
 
 def extract_ticker_info(headline: str):
-    match = re.search(r'\(([A-Z0-9]{4,6})\)', headline)
-    if match:
-        return match.group(1)
-    
-    match2 = re.search(r'^([A-Z0-9]{4,6})\b', headline)
-    if match2:
-        return match2.group(1)
+    if not headline:
+        return None
+    # 1. Search for standard tickers (e.g. HGLG11, MXRF11, PETR4, VALE3, BBDC4, KNIP11)
+    full_match = re.search(r'\b([A-Z]{4}(?:11|12|13|14|3|4|5|6|34|35|39))\b', headline)
+    if full_match:
+        return full_match.group(1)
+        
+    # 2. Search for ticker in parentheses (e.g. (HGBS), (HGLG), (PETR4), (VALE3))
+    paren_match = re.search(r'\(([A-Z0-9]{4,6})\)', headline)
+    if paren_match:
+        code = paren_match.group(1)
+        # If it is a 4-letter code in a FII/FIAGRO headline, standard trading ticker is code + '11'
+        if len(code) == 4 and any(w in headline.upper() for w in ["FII ", "FIAGRO", "FDO INV", "IMOB"]):
+            return code + "11"
+        return code
+        
+    # 3. Match at beginning of headline (e.g. 'PETR4 - ', 'HGLG11 - ')
+    start_match = re.search(r'^([A-Z0-9]{4,6})\b', headline)
+    if start_match:
+        return start_match.group(1)
+        
     return None
 
 def is_fii_item(headline: str, ticker: Optional[str]) -> bool:

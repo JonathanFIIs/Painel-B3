@@ -700,12 +700,58 @@
         }
     }
 
+    function isItemMonitored(item) {
+        if (!item || !state.monitoredTickers || state.monitoredTickers.size === 0) return false;
+
+        const itemTicker = (item.ticker || '').toUpperCase().trim();
+        const headlineUpper = (item.headline || '').toUpperCase();
+
+        // 1. Direct match on item.ticker (e.g. 'HGLG11' === 'HGLG11' or 'PETR4' === 'PETR4')
+        if (itemTicker && state.monitoredTickers.has(itemTicker)) {
+            return true;
+        }
+
+        // 2. Smart base matching & headline check for all monitored tickers
+        for (const mon of state.monitoredTickers) {
+            const monClean = mon.toUpperCase().trim();
+            if (!monClean) continue;
+
+            // Check if exact monitored string appears in headline
+            if (headlineUpper.includes(monClean)) {
+                return true;
+            }
+
+            // Extract base root (e.g., 'HGLG' from 'HGLG11', 'PETR' from 'PETR4', 'VALE' from 'VALE3')
+            const monBase = monClean.replace(/\d+$/, '');
+            const itemBase = itemTicker ? itemTicker.replace(/\d+$/, '') : '';
+
+            // Match base root (e.g., itemTicker 'HGBS' matches monitored 'HGBS11')
+            if (monBase && itemBase && monBase === itemBase) {
+                return true;
+            }
+
+            // Match 4-letter base in headline (e.g., '(HGBS)' or 'FII HEDGEBS (HGBS)')
+            if (monBase && monBase.length >= 4) {
+                if (headlineUpper.includes(`(${monBase})`) || 
+                    headlineUpper.includes(` ${monBase} `) || 
+                    headlineUpper.includes(` ${monBase}-`) ||
+                    headlineUpper.includes(` ${monBase}/`) ||
+                    headlineUpper.includes(`FII ${monBase}`) ||
+                    headlineUpper.includes(`FIAGRO ${monBase}`)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // Filter Logic
     function applyFiltersAndRender(resetRender = true) {
         const filtered = state.news.filter(item => {
             // Monitored Filter
             if (state.agency === 'monitored') {
-                if (!item.ticker || !state.monitoredTickers.has(item.ticker.toUpperCase())) {
+                if (!isItemMonitored(item)) {
                     return false;
                 }
             }
@@ -1056,7 +1102,10 @@
     function updateStats() {
         if (elements.statTotal) elements.statTotal.textContent = state.news.length.toLocaleString('pt-BR');
         if (elements.statNew) elements.statNew.textContent = state.newIds.size;
-        if (elements.statMonitored) elements.statMonitored.textContent = state.monitoredTickers.size;
+
+        const monitoredCount = state.news.filter(n => isItemMonitored(n)).length;
+        if (elements.statMonitored) elements.statMonitored.textContent = monitoredCount.toLocaleString('pt-BR');
+
         if (elements.statFavorites) elements.statFavorites.textContent = state.favoriteIds.size;
         if (elements.monitoredCountBadge) {
             elements.monitoredCountBadge.textContent = state.monitoredTickers.size;
